@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { Book, ColourMode, HoveredPassage } from '../utils/types';
@@ -44,7 +44,6 @@ export function Canvas({ books, activeBooks, colourMode, hovered, onHover, playb
     allPositions: { bookIndex: number; passageIndex: number; position: THREE.Vector3 }[];
     pointsMesh: THREE.Points | null;
   } | null>(null);
-  const [size, setSize] = useState({ width: 800, height: 600 });
   const booksRef = useRef(books);
   booksRef.current = books;
 
@@ -104,7 +103,6 @@ export function Canvas({ books, activeBooks, colourMode, hovered, onHover, playb
     // Resize
     const ro = new ResizeObserver((entries) => {
       const { width, height } = entries[0].contentRect;
-      setSize({ width: Math.floor(width), height: Math.floor(height) });
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
