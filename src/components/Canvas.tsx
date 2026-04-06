@@ -42,7 +42,7 @@ export function Canvas({ books, activeBooks, colourMode, hovered, onHover, playb
   const dragRef = useRef<{ startX: number; startY: number; startOX: number; startOY: number } | null>(null);
 
   const { render } = useCanvasRenderer();
-  const { hitTest } = useHitTest(books, transform, size.width, size.height);
+  const { hitTest } = useHitTest(books, transform);
 
   // Resize observer
   useEffect(() => {

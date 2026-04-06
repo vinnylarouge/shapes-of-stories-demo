@@ -11,8 +11,6 @@ export interface HitResult {
 export function useHitTest(
   books: Book[],
   transform: { offsetX: number; offsetY: number; scale: number },
-  canvasWidth: number,
-  canvasHeight: number
 ) {
   const toScreen = useCallback(
     (x: number, y: number) => {
