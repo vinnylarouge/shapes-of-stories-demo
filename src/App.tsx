@@ -12,7 +12,7 @@ export default function App() {
   const [hovered, setHovered] = useState<HoveredPassage | null>(null);
 
   useEffect(() => {
-    fetch('/story_shapes.json')
+    fetch(import.meta.env.BASE_URL + 'story_shapes.json')
       .then((r) => r.json())
       .then((d: StoryData) => setData(d));
   }, []);
