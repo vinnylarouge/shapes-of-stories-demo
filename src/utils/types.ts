@@ -1,6 +1,9 @@
 export interface Passage {
   x: number;
   y: number;
+  x3d: number;
+  y3d: number;
+  z3d: number;
   pos: number;
   text: string;
   dialogue: number;

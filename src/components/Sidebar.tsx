@@ -12,6 +12,8 @@ interface Props {
   onSetAllBooks: (active: boolean) => void;
   onSetColourMode: (mode: ColourMode) => void;
   singleActiveBook: number | null;
+  hoveredBookIndex: number | null;
+  onHoverBook: (index: number | null) => void;
   playbackState: {
     playing: boolean;
     currentIndex: number;
@@ -39,6 +41,8 @@ export function Sidebar({
   onSetAllBooks,
   onSetColourMode,
   singleActiveBook,
+  hoveredBookIndex,
+  onHoverBook,
   playbackState,
 }: Props) {
   const [search, setSearch] = useState('');
@@ -102,19 +106,27 @@ export function Sidebar({
       </div>
 
       {/* Book list */}
-      <div className="flex-1 overflow-y-auto px-4 pb-2">
+      <div
+        className="flex-1 overflow-y-auto px-4 pb-2"
+        onMouseLeave={() => onHoverBook(null)}
+      >
         {filtered.map(({ book, index }) => {
           const colour = BOOK_COLOURS[index % BOOK_COLOURS.length];
           const active = activeBooks.has(index);
+          const hoverDimmed = hoveredBookIndex !== null && hoveredBookIndex !== index;
+          const selectionDimmed = activeBooks.size > 0 && !active && hoveredBookIndex === null;
+          const opacity = hoverDimmed ? 0.3 : selectionDimmed ? 0.5 : 1;
           return (
             <button
               key={index}
               onClick={() => onToggleBook(index)}
-              className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-sm text-left text-sm mb-0.5 transition-colors ${
+              onMouseEnter={() => onHoverBook(index)}
+              className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-sm text-left text-sm mb-0.5 transition-all duration-150 ${
                 active
                   ? 'bg-[#f5f0e8] text-[#3d3328]'
                   : 'text-[#8a7e6b] hover:text-[#5a4d3e] hover:bg-[#e8e0d0]'
               }`}
+              style={{ opacity }}
             >
               <span
                 className="w-2.5 h-2.5 rounded-full flex-shrink-0"

@@ -10,6 +10,7 @@ export default function App() {
   const [activeBooks, setActiveBooks] = useState<Set<number>>(new Set());
   const [colourMode, setColourMode] = useState<ColourMode>('book');
   const [hovered, setHovered] = useState<HoveredPassage | null>(null);
+  const [hoveredBookIndex, setHoveredBookIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(import.meta.env.BASE_URL + 'story_shapes.json')
@@ -91,6 +92,7 @@ export default function App() {
         hovered={hovered}
         onHover={setHovered}
         playback={playbackTarget}
+        hoveredBookIndex={hoveredBookIndex}
       />
       <Sidebar
         books={books}
@@ -101,6 +103,8 @@ export default function App() {
         onSetColourMode={setColourMode}
         singleActiveBook={singleActiveBook}
         playbackState={singleActiveBook !== null ? playback : null}
+        hoveredBookIndex={hoveredBookIndex}
+        onHoverBook={setHoveredBookIndex}
       />
       <PassagePanel books={books} hovered={hovered} playback={playbackTarget} />
     </div>
