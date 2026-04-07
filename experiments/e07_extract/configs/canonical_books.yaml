@@ -1,0 +1,44 @@
+# E07 — corpus for the canonical-books extraction.
+#
+# Title substrings are matched (case-insensitive) against the
+# `short_book_title` field of `emozilla/pg19` on HuggingFace. The first
+# matching book per substring is taken; ties go to the first match seen.
+#
+# `seg_len` is the number of tokens taken from the middle of each book
+# (matching the existing story_shapes_demo notebook).
+# `min_book_len` filters out anything too short to bother with.
+
+seg_len: 10000
+min_book_len: 15000
+
+books:
+  - "Pride and Prejudice"
+  - "Frankenstein"
+  - "Dracula"
+  - "A Christmas Carol"
+  - "Adventures of Sherlock Holmes"
+  - "Heart of Darkness"
+  - "War of the Worlds"
+  - "Alice's Adventures in Wonderland"
+  - "Moby Dick"
+  - "Picture of Dorian Gray"
+  - "Jane Eyre"
+  - "Wuthering Heights"
+  - "Great Expectations"
+  - "Tale of Two Cities"
+  - "The Odyssey"
+  - "Crime and Punishment"
+  - "Anna Karenina"
+  - "Treasure Island"
+  - "The Jungle Book"
+  - "The Time Machine"
+  - "The Strange Case of Dr. Jekyll"
+  - "The Importance of Being Earnest"
+  - "The Turn of the Screw"
+  - "Sense and Sensibility"
+  - "Little Women"
+  - "The Scarlet Letter"
+  - "The Call of the Wild"
+  - "Twenty Thousand Leagues"
+  - "Les Misérables"
+  - "Don Quixote"
