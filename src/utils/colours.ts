@@ -57,12 +57,60 @@ export function positionColour(v: number): string {
   return gradientColour(['#1A5276', '#7B1FA2', '#C0392B'], v);
 }
 
-export function getFeatureColour(mode: string, passage: { dialogue: number; entropy: number; sent_len: number; pos: number }): string {
+// E03 — motif: distinct hues per code (max 16)
+const MOTIF_PALETTE = [
+  '#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C',
+  '#E67E22', '#34495E', '#16A085', '#C0392B', '#2980B9', '#27AE60',
+  '#D35400', '#8E44AD', '#7F8C8D', '#F1C40F',
+];
+export function motifColour(code: number | undefined): string {
+  if (code === undefined || code < 0) return '#aaa';
+  return MOTIF_PALETTE[code % MOTIF_PALETTE.length];
+}
+
+// E04 — surprise: pale → magma red
+export function surpriseColour(v: number, max: number = 3): string {
+  const t = Math.max(0, Math.min(1, v / max));
+  return gradientColour(['#f5e6d3', '#E67E22', '#C0392B', '#3d1818'], t);
+}
+
+// E04 — vector field magnitude: deep navy → teal → green → amber → vermilion.
+// Roughly perceptually uniform across t ∈ [0, 1].
+const MAGNITUDE_STOPS = ['#1a1a4e', '#1f4d6e', '#138a72', '#9bc53d', '#f4a261', '#e76f51'];
+export function magnitudeColour(t: number): [number, number, number] {
+  const hex = gradientColour(MAGNITUDE_STOPS, Math.max(0, Math.min(1, t)));
+  const [r, g, b] = hexToRgb(hex);
+  return [r / 255, g / 255, b / 255];
+}
+
+// E02 — shape archetype: distinct hues per cluster
+const SHAPE_PALETTE = [
+  '#1A5276', '#C0392B', '#0D3B2E', '#7B1FA2', '#D4AC0D', '#16A085',
+  '#884EA0', '#CA6F1E',
+];
+export function shapeColour(archetype: number | undefined): string {
+  if (archetype === undefined || archetype < 0) return '#aaa';
+  return SHAPE_PALETTE[archetype % SHAPE_PALETTE.length];
+}
+
+interface FeatureSource {
+  dialogue: number;
+  entropy: number;
+  sent_len: number;
+  pos: number;
+  code?: number;
+  surprise?: number;
+}
+
+export function getFeatureColour(mode: string, passage: FeatureSource, book?: { shape_archetype?: number }): string {
   switch (mode) {
     case 'dialogue': return dialogueColour(passage.dialogue);
     case 'entropy': return entropyColour(passage.entropy);
     case 'sent_len': return sentLenColour(passage.sent_len);
     case 'position': return positionColour(passage.pos);
+    case 'motif': return motifColour(passage.code);
+    case 'surprise': return surpriseColour(passage.surprise ?? 0);
+    case 'shape': return shapeColour(book?.shape_archetype);
     default: return '#888';
   }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { StoryData, ColourMode, HoveredPassage } from './utils/types';
+import type { StoryData, ColourMode, HoveredPassage, ViewMode, InterpolateState } from './utils/types';
 import { Canvas } from './components/Canvas';
 import { Sidebar } from './components/Sidebar';
 import { PassagePanel } from './components/PassagePanel';
@@ -9,6 +9,9 @@ export default function App() {
   const [data, setData] = useState<StoryData | null>(null);
   const [activeBooks, setActiveBooks] = useState<Set<number>>(new Set());
   const [colourMode, setColourMode] = useState<ColourMode>('book');
+  const [viewMode, setViewMode] = useState<ViewMode>('default');
+  const [fieldEnabled, setFieldEnabled] = useState(false);
+  const [interpolate, setInterpolate] = useState<InterpolateState>({ bookA: null, bookB: null, alpha: 0.5, fieldInfluence: 0 });
   const [hovered, setHovered] = useState<HoveredPassage | null>(null);
   const [hoveredBookIndex, setHoveredBookIndex] = useState<number | null>(null);
 
@@ -87,8 +90,12 @@ export default function App() {
     <div className="flex h-screen bg-[#f5f0e8] overflow-hidden">
       <Canvas
         books={books}
+        metadata={data?.metadata ?? null}
         activeBooks={activeBooks}
         colourMode={colourMode}
+        viewMode={viewMode}
+        fieldEnabled={fieldEnabled}
+        interpolate={interpolate}
         hovered={hovered}
         onHover={setHovered}
         playback={playbackTarget}
@@ -96,11 +103,18 @@ export default function App() {
       />
       <Sidebar
         books={books}
+        metadata={data?.metadata ?? null}
         activeBooks={activeBooks}
         colourMode={colourMode}
+        viewMode={viewMode}
+        fieldEnabled={fieldEnabled}
+        interpolate={interpolate}
         onToggleBook={toggleBook}
         onSetAllBooks={setAllBooks}
         onSetColourMode={setColourMode}
+        onSetViewMode={setViewMode}
+        onSetFieldEnabled={setFieldEnabled}
+        onSetInterpolate={setInterpolate}
         singleActiveBook={singleActiveBook}
         playbackState={singleActiveBook !== null ? playback : null}
         hoveredBookIndex={hoveredBookIndex}
