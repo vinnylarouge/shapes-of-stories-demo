@@ -23,6 +23,8 @@ export interface Passage {
   surprise?: number;
   // E05 — projection onto top-3 averaged canonical axes.
   canonical?: [number, number, number];
+  // E10 — top non-trivial diffusion eigenvector values per passage.
+  eig?: number[];
 }
 
 export interface PersistencePair {
@@ -75,6 +77,30 @@ export interface Metadata {
     n_pairs: number;
     mean_canonical_corrs: number[];
   };
+  // E08 — linear narrative transition operator (SVD / DMD)
+  transition_svd?: {
+    T: number[][];
+    U: number[][];
+    sigma: number[];
+    V: number[][];
+    n_pairs: number;
+    r2: number;
+  };
+  // E09 — representational velocity spectrum (PCA on deltas)
+  velocity_pca?: {
+    components: number[][];
+    variance: number[];
+    variance_ratio: number[];
+    mean_delta: number[];
+    n_deltas: number;
+  };
+  // E10 — diffusion eigenmaps over the passage cloud
+  diffusion?: {
+    k_neighbors: number;
+    n_eig: number;
+    eigenvalues: number[];
+    trivial_eigenvalue: number;
+  };
 }
 
 export interface StoryData {
@@ -90,7 +116,11 @@ export type ColourMode =
   | 'position'
   | 'motif'      // E03
   | 'surprise'   // E04
-  | 'shape';     // E02
+  | 'shape'      // E02
+  | 'spec1'      // E10 — 1st non-trivial diffusion eigenvector
+  | 'spec2'
+  | 'spec3'
+  | 'spec4';
 
 export type ViewMode = 'default' | 'canonical' | 'interpolate';
 

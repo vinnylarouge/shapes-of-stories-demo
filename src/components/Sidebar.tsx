@@ -42,6 +42,10 @@ const COLOUR_MODES: { value: ColourMode; label: string }[] = [
   { value: 'motif', label: 'Motif' },
   { value: 'surprise', label: 'Surprise' },
   { value: 'shape', label: 'Shape' },
+  { value: 'spec1', label: 'Spec 1' },
+  { value: 'spec2', label: 'Spec 2' },
+  { value: 'spec3', label: 'Spec 3' },
+  { value: 'spec4', label: 'Spec 4' },
 ];
 
 const VIEW_MODES: { value: ViewMode; label: string }[] = [
@@ -155,7 +159,32 @@ export function Sidebar({
         mode={colourMode}
         vqK={metadata?.vq_k}
         shapeArchetypes={metadata?.shape_archetypes}
+        diffusionEigenvalues={metadata?.diffusion?.eigenvalues}
       />
+
+      {/* E08 + E09 — global spectral metrics */}
+      {(metadata?.transition_svd || metadata?.velocity_pca) && (
+        <div className="px-4 pb-3">
+          <div className="text-xs text-[#8a7e6b] mb-1 uppercase tracking-widest" style={{ fontSize: '0.6rem' }}>
+            Spectral metrics
+          </div>
+          {metadata?.transition_svd && (
+            <div className="text-xs text-[#6b5c4d] tabular-nums leading-tight mb-1">
+              <span className="text-[#8a7e6b]">Linear T:</span>{' '}
+              σ = [{metadata.transition_svd.sigma.map((s) => s.toFixed(2)).join(', ')}],{' '}
+              R² = {metadata.transition_svd.r2.toFixed(2)}
+            </div>
+          )}
+          {metadata?.velocity_pca && (
+            <div className="text-xs text-[#6b5c4d] tabular-nums leading-tight">
+              <span className="text-[#8a7e6b]">Velocity PCA:</span>{' '}
+              {metadata.velocity_pca.variance_ratio
+                .map((v) => `${(v * 100).toFixed(0)}%`)
+                .join(' / ')}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Interpolate panel */}
       {isInterp && (

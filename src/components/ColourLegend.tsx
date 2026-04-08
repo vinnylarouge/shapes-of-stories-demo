@@ -7,12 +7,14 @@ import {
   surpriseColour,
   motifColour,
   shapeColour,
+  eigColour,
 } from '../utils/colours';
 
 interface Props {
   mode: ColourMode;
   vqK?: number;
   shapeArchetypes?: number;
+  diffusionEigenvalues?: number[];
 }
 
 const GRADIENT_LEGENDS: Record<string, { label: string; fn: (t: number) => string; min: string; max: string }> = {
@@ -23,7 +25,9 @@ const GRADIENT_LEGENDS: Record<string, { label: string; fn: (t: number) => strin
   surprise: { label: 'Surprise (vs. field)', fn: (t) => surpriseColour(t * 3), min: '0', max: '3+' },
 };
 
-export function ColourLegend({ mode, vqK, shapeArchetypes }: Props) {
+const SPEC_MODE_INDEX: Record<string, number> = { spec1: 0, spec2: 1, spec3: 2, spec4: 3 };
+
+export function ColourLegend({ mode, vqK, shapeArchetypes, diffusionEigenvalues }: Props) {
   if (mode === 'book') return null;
 
   if (mode === 'motif' || mode === 'shape') {
@@ -43,6 +47,33 @@ export function ColourLegend({ mode, vqK, shapeArchetypes }: Props) {
               <span className="text-[10px] text-[#8a7e6b]">{i}</span>
             </div>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (mode in SPEC_MODE_INDEX) {
+    const idx = SPEC_MODE_INDEX[mode];
+    const eigval = diffusionEigenvalues?.[idx];
+    const stops = Array.from({ length: 20 }, (_, i) => {
+      const t = i / 19;
+      // Map t ∈ [0,1] back to v ∈ [-0.05, +0.05]
+      return eigColour((t - 0.5) * 0.1);
+    });
+    const gradient = `linear-gradient(to right, ${stops.join(', ')})`;
+    return (
+      <div className="px-4 pb-3">
+        <div className="text-xs text-[#8a7e6b] mb-1 italic">
+          Diffusion eigenvector {idx + 1}
+          {eigval !== undefined && (
+            <span className="text-[#a89880] tabular-nums"> (λ={eigval.toFixed(4)})</span>
+          )}
+        </div>
+        <div className="h-2.5 rounded-sm" style={{ background: gradient }} />
+        <div className="flex justify-between text-xs text-[#a89880] mt-0.5">
+          <span>−</span>
+          <span>0</span>
+          <span>+</span>
         </div>
       </div>
     );

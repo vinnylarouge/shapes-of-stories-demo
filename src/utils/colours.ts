@@ -93,6 +93,18 @@ export function shapeColour(archetype: number | undefined): string {
   return SHAPE_PALETTE[archetype % SHAPE_PALETTE.length];
 }
 
+// E10 — diffusion eigenvector value: diverging blue (negative) ↔ cream
+// (zero) ↔ red (positive). The natural colour map for a signed scalar
+// field on the corpus.
+export function eigColour(v: number, scale: number = 0.05): string {
+  // Map [-scale, +scale] → [0, 1] then through a 5-stop diverging ramp.
+  const t = Math.max(0, Math.min(1, (v / scale + 1) / 2));
+  return gradientColour(
+    ['#1A5276', '#5DADE2', '#f5f0e8', '#E67E22', '#C0392B'],
+    t,
+  );
+}
+
 interface FeatureSource {
   dialogue: number;
   entropy: number;
@@ -100,6 +112,7 @@ interface FeatureSource {
   pos: number;
   code?: number;
   surprise?: number;
+  eig?: number[];
 }
 
 export function getFeatureColour(mode: string, passage: FeatureSource, book?: { shape_archetype?: number }): string {
@@ -111,6 +124,10 @@ export function getFeatureColour(mode: string, passage: FeatureSource, book?: { 
     case 'motif': return motifColour(passage.code);
     case 'surprise': return surpriseColour(passage.surprise ?? 0);
     case 'shape': return shapeColour(book?.shape_archetype);
+    case 'spec1': return eigColour(passage.eig?.[0] ?? 0);
+    case 'spec2': return eigColour(passage.eig?.[1] ?? 0);
+    case 'spec3': return eigColour(passage.eig?.[2] ?? 0);
+    case 'spec4': return eigColour(passage.eig?.[3] ?? 0);
     default: return '#888';
   }
 }
