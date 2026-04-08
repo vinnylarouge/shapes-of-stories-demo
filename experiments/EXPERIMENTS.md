@@ -44,12 +44,88 @@ These rules apply to every experiment in this directory:
 | **E05** | Position-aligned canonical axes (CCA) | §5 (canonicity) | small — pure numpy via SVD | **implemented** |
 | **E06** | Story interpolation slider | §4 (interpolation) | medium — frontend-only | **implemented** (lerp version; OT/slerp upgrade pending) |
 | **E07** | Mac-mini extraction CLI + Llama-3.2-3B | §1 (technical) | large — needs hardware | **scripts ready, not yet run** |
+| **E08** | Linear narrative transition operator (SVD / DMD) | §6 (dynamical systems), spectral track | trivial — numpy lstsq + 3×3 SVD | **implemented** |
+| **E09** | Representational velocity spectrum (PCA on deltas) | §6 (dynamical systems), spectral track | trivial — thin SVD on (n × d) | **implemented** |
+| **E10** | Diffusion eigenmaps over the passage cloud | §5 (canonicity), spectral track | small — dense Laplacian eigh, ~30 s | **implemented** |
+| E11 | HGR maximal correlation spectrum | spectral track | medium — needs binned joint distribution or per-layer data | spec only |
+| E12 | CKA cross-layer / cross-book alignment | spectral track | small — needs per-layer data from E07 | spec only |
+| E13 | Spectral analysis of T*T on L² | spectral track | large — fully nonlinear, kernel methods | spec only |
 
-All seven experiments now have working implementations. E01–E05 enrich
-`public/story_shapes.json` in place via independent additive scripts;
-E06 is rendered live in the browser from the existing data; E07 is the
-two-step extraction CLI that swaps the GPT-2 medium output for a
-Llama-3.2-3B (or any HF causal LM) drop-in replacement.
+E01–E10 have working implementations. E08–E10 form a *spectral track*
+that computes interpretable spectra of the latent dynamics: the linear
+transition operator (E08), the velocity covariance (E09), and the
+diffusion-operator eigenfunctions on the passage cloud (E10). The
+richer cousins E11–E13 (HGR, CKA, T*T on L²) need either per-layer
+activation data from E07 or expensive kernel machinery; specs are below.
+
+## Spectral track (E08–E13)
+
+`DIRECTIONS.md` originally framed these spectra as "between consecutive
+transformer layers" (the joint distribution of (Z_l, Z_{l+1}) in the
+autoencoded latent). The published JSON has only the post-UMAP 3D
+latent and no per-layer activations, so the implemented members of
+this track (E08–E10) apply the same machinery to the
+**narrative-time** axis instead — Z_l = z_t, Z_{l+1} = z_{t+1}, with
+the transition operator now being the corpus's drift between adjacent
+passages. When E07 produces per-layer data, swap the data loaders and
+the same spectra become the literal layer-to-layer objects from the
+directions document.
+
+### E11 — HGR maximal correlation
+
+The HGR decomposition of the joint distribution of (Z_l, Z_{l+1})
+gives orthogonal "channels" of information flow, each with a maximal
+correlation value playing the role of a singular value. Architecture-
+invariant by construction; directly generalises SVD to the nonlinear
+setting; connects to the principal inertia components framework.
+
+Computation, two paths:
+
+1. **Discretised** — bin (Z_l, Z_{l+1}) into a joint histogram, build
+   the *Q matrix* `Q[i,j] = P_{ll+1}[i,j] / sqrt(P_l[i] · P_{l+1}[j])`,
+   take its SVD. Singular values are the HGR spectrum, singular
+   functions are step functions on the bins. Tractable for low-d (≤ 3)
+   but blows up combinatorially with dimension — best run after E07
+   produces a small, well-chosen latent rather than the post-UMAP 3D
+   coordinates that have already lost most of the conditional
+   structure.
+2. **Kernel** — approximate the HGR functions in an RKHS; reduces to
+   kernel CCA. More expressive but more expensive; needs hours of
+   compute on the canonical-books corpus even for the simple
+   passage-to-passage case.
+
+### E12 — CKA (centered kernel alignment) cross-layer
+
+CKA between two representations X and Y is a normalised scalar
+saying how similarly they cluster the data. Lifted to a *spectral*
+view via Gram-matrix eigendecomposition, it gives shared modes
+between layers (or between books, or between models).
+
+Trivial to implement once E07 produces multi-layer activations:
+
+```python
+def cka(X, Y):
+    Kx = X @ X.T; Ky = Y @ Y.T
+    n = len(X)
+    H = np.eye(n) - np.ones((n, n)) / n
+    KxC, KyC = H @ Kx @ H, H @ Ky @ H
+    return (KxC * KyC).sum() / (np.linalg.norm(KxC) * np.linalg.norm(KyC))
+```
+
+For the existing 3D-only data, the cross-*book* CKA still works and
+gives a 29×29 book similarity matrix that complements the E02 shape
+clustering — TODO follow-on.
+
+### E13 — Spectral analysis of T*T on L²
+
+The fully general nonlinear version: keep the layer-to-layer map T
+nonlinear and study the eigendecomposition of its adjoint composition
+T*T as an operator on L²(latent). HGR is the finite-dim approximation
+of this; the full operator-theoretic version is the gold standard but
+requires either Markov chain Monte Carlo or kernel approximations
+that are hard to converge. Best run on the per-layer activations from
+E07, where the operator has a short-range structure that makes the
+estimation tractable.
 
 ---
 
