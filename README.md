@@ -72,8 +72,9 @@ with another book in interpolate mode.
 |---|---|---|
 | **View** Default / Canonical / Interpolate | Default: post-UMAP latent. Canonical: same passages projected onto cross-book canonical axes (content-removed). Interpolate: pick two books, slide between them. | E05, E06 |
 | **Show vector field overlay** | Renders an adaptive-octree drift field over the latent. Colour = magnitude (navy → vermilion), tail-to-head gradient = direction. Cell size adapts to local field variation. | E04 |
-| **Colouring** Book / Dialogue / Entropy / Sent. Len / Position / **Motif** / **Surprise** / **Shape** | Bold modes are the new ones. Motif = k-means code. Surprise = residual against the field. Shape = persistence-based archetype. | E03, E04, E02 |
+| **Colouring** Book / Dialogue / Entropy / Sent. Len / Position / **Motif** / **Surprise** / **Shape** / **Spec 1–4** | Bold modes are the new ones. Motif = k-means code. Surprise = residual against the field. Shape = persistence-based archetype. Spec 1–4 = top non-trivial diffusion eigenvectors of the passage cloud, rendered with a diverging blue↔red colour map. | E02, E03, E04, E10 |
 | **Persistence glyph** next to each book | Tiny vertical-stroke H₀ persistence signature of the book's trajectory. | E02 |
+| **Spectral metrics** sub-panel | Linear-T singular values + R², velocity-PCA variance ratios. | E08, E09 |
 | **Field influence** slider in interpolate mode | Bends the interpolated polyline along the local v(z). 0 = pure lerp, 1 = strongly bent by the corpus's drift field. | E04 ↔ E06 coupling |
 | **Hover** any passage | Text snippet, dialogue %, entropy, sentence length, motif code, surprise, and the 5 nearest cross-book passages. | E01, E03, E04 |
 
@@ -91,10 +92,20 @@ arguments needed for the defaults. They are:
 | **E04** Adaptive vector field | kernel-fit drift v(z) sampled by adaptive octree refinement (Barnes-Hut-flavoured), per-passage surprise residual | numpy only, ~5 s |
 | **E05** Canonical axes (CCA) | position-aligned cross-book CCA via SVD on whitened cross-covariance | numpy only, ~1 s |
 | **E07** Mac-mini extraction CLI | two-step CLI: load any HF causal LM (default Llama-3.2-3B), extract per-token activations to mmap, then PCA → AE → UMAP → JSON | torch + transformers; not yet run |
+| **E08** Linear narrative transition operator | least-squares fit of T : ℝᵈ → ℝᵈ across (z_t, z_{t+1}) pairs, SVD to get input/output direction spectrum and amplification factors | numpy only, < 1 s |
+| **E09** Velocity spectrum | PCA on the per-step latent deltas — how many directions narrative is actually moving in | numpy only, < 1 s |
+| **E10** Diffusion eigenmaps | k-NN graph Laplacian eigendecomposition on the passage cloud; bottom non-trivial eigenvectors become new colour modes | numpy only, ~5 s |
 
-E01–E05 run on the existing GPT-2 medium output. E07 produces a fresh
+E01–E10 run on the existing GPT-2 medium output. E07 produces a fresh
 `public/story_shapes.json` from a larger model, after which all of
-E01–E05 should be re-run unchanged.
+E01–E10 should be re-run unchanged.
+
+E08–E10 form a *spectral track* that lifts the layer-to-layer spectral
+analyses sketched in `DIRECTIONS.md` to the narrative-time axis (since
+we don't yet have per-layer activations). E11–E13 — HGR maximal
+correlation, CKA, and the full T*T-on-L² operator — are spec'd in
+`experiments/EXPERIMENTS.md` and will run unchanged on the per-layer
+data once E07 lands.
 
 ## Sample run output
 
