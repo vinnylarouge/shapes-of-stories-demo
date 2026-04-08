@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Book, ColourMode, ViewMode, InterpolateState, Metadata } from '../utils/types';
 import { BOOK_COLOURS } from '../utils/colours';
+import { COLOUR_MODE_INFO, VIEW_MODE_INFO, FIELD_OVERLAY_INFO } from '../utils/displaySettings';
 import { ColourLegend } from './ColourLegend';
 import { PlaybackControls } from './PlaybackControls';
 import { PersistenceGlyph } from './PersistenceGlyph';
@@ -33,26 +34,23 @@ interface Props {
   } | null;
 }
 
-const COLOUR_MODES: { value: ColourMode; label: string }[] = [
-  { value: 'book', label: 'By Book' },
-  { value: 'dialogue', label: 'Dialogue' },
-  { value: 'entropy', label: 'Entropy' },
-  { value: 'sent_len', label: 'Sent. Len' },
-  { value: 'position', label: 'Position' },
-  { value: 'motif', label: 'Motif' },
-  { value: 'surprise', label: 'Surprise' },
-  { value: 'shape', label: 'Shape' },
-  { value: 'spec1', label: 'Spec 1' },
-  { value: 'spec2', label: 'Spec 2' },
-  { value: 'spec3', label: 'Spec 3' },
-  { value: 'spec4', label: 'Spec 4' },
+const COLOUR_MODE_ORDER: ColourMode[] = [
+  'book', 'dialogue', 'entropy', 'sent_len', 'position',
+  'motif', 'surprise', 'shape',
+  'spec1', 'spec2', 'spec3', 'spec4',
 ];
 
-const VIEW_MODES: { value: ViewMode; label: string }[] = [
-  { value: 'default', label: 'Default' },
-  { value: 'canonical', label: 'Canonical' },
-  { value: 'interpolate', label: 'Interpolate' },
-];
+const VIEW_MODE_ORDER: ViewMode[] = ['default', 'canonical', 'interpolate'];
+
+/** Reusable inline blurb shown under each setting group. */
+function SettingBlurb({ name, blurb }: { name: string; blurb: string }) {
+  return (
+    <div className="px-4 pb-3 text-xs text-[#6b5c4d] leading-snug">
+      <div className="font-semibold text-[#3d3328] mb-0.5">{name}</div>
+      <div className="italic text-[#8a7e6b]">{blurb}</div>
+    </div>
+  );
+}
 
 export function Sidebar({
   books,
@@ -102,54 +100,66 @@ export function Sidebar({
 
       {/* View mode */}
       <div className="px-4 pt-3 pb-1">
-        <div className="text-xs text-[#8a7e6b] mb-1.5 uppercase tracking-widest" style={{ fontSize: '0.65rem' }}>View</div>
+        <div className="text-xs text-[#8a7e6b] mb-1.5 uppercase tracking-widest" style={{ fontSize: '0.65rem' }}>Projection</div>
         <div className="flex gap-1">
-          {VIEW_MODES.map((m) => (
+          {VIEW_MODE_ORDER.map((value) => (
             <button
-              key={m.value}
-              onClick={() => onSetViewMode(m.value)}
+              key={value}
+              onClick={() => onSetViewMode(value)}
               className={`flex-1 px-2 py-1 text-xs rounded-sm transition-colors ${
-                viewMode === m.value
+                viewMode === value
                   ? 'bg-[#3d3328] text-[#f5f0e8]'
                   : 'bg-[#ddd5c5] text-[#6b5c4d] hover:bg-[#d4cbb8]'
               }`}
             >
-              {m.label}
+              {VIEW_MODE_INFO[value].label}
             </button>
           ))}
         </div>
       </div>
+      <SettingBlurb
+        name={VIEW_MODE_INFO[viewMode].name}
+        blurb={VIEW_MODE_INFO[viewMode].blurb}
+      />
 
       {/* Field toggle (only when E04 data is present) */}
       {hasField && (
-        <div className="px-4 pt-2 pb-1">
-          <label className="flex items-center gap-2 text-xs text-[#6b5c4d] cursor-pointer">
-            <input
-              type="checkbox"
-              checked={fieldEnabled}
-              onChange={(e) => onSetFieldEnabled(e.target.checked)}
-              className="accent-[#3d3328]"
+        <>
+          <div className="px-4 pt-1 pb-1">
+            <label className="flex items-center gap-2 text-xs text-[#6b5c4d] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={fieldEnabled}
+                onChange={(e) => onSetFieldEnabled(e.target.checked)}
+                className="accent-[#3d3328]"
+              />
+              <span>{FIELD_OVERLAY_INFO.label}</span>
+            </label>
+          </div>
+          {fieldEnabled && (
+            <SettingBlurb
+              name={FIELD_OVERLAY_INFO.name}
+              blurb={FIELD_OVERLAY_INFO.blurb}
             />
-            <span>Show vector field overlay</span>
-          </label>
-        </div>
+          )}
+        </>
       )}
 
       {/* Colour mode */}
       <div className="px-4 pt-3 pb-2">
-        <div className="text-xs text-[#8a7e6b] mb-1.5 uppercase tracking-widest" style={{ fontSize: '0.65rem' }}>Colouring</div>
+        <div className="text-xs text-[#8a7e6b] mb-1.5 uppercase tracking-widest" style={{ fontSize: '0.65rem' }}>Colour by</div>
         <div className="flex flex-wrap gap-1">
-          {COLOUR_MODES.map((m) => (
+          {COLOUR_MODE_ORDER.map((value) => (
             <button
-              key={m.value}
-              onClick={() => onSetColourMode(m.value)}
+              key={value}
+              onClick={() => onSetColourMode(value)}
               className={`px-2.5 py-1 text-xs rounded-sm transition-colors ${
-                colourMode === m.value
+                colourMode === value
                   ? 'bg-[#3d3328] text-[#f5f0e8]'
                   : 'bg-[#ddd5c5] text-[#6b5c4d] hover:bg-[#d4cbb8]'
               }`}
             >
-              {m.label}
+              {COLOUR_MODE_INFO[value].label}
             </button>
           ))}
         </div>
@@ -160,6 +170,11 @@ export function Sidebar({
         vqK={metadata?.vq_k}
         shapeArchetypes={metadata?.shape_archetypes}
         diffusionEigenvalues={metadata?.diffusion?.eigenvalues}
+      />
+
+      <SettingBlurb
+        name={COLOUR_MODE_INFO[colourMode].name}
+        blurb={COLOUR_MODE_INFO[colourMode].blurb}
       />
 
       {/* E08 + E09 — global spectral metrics */}
